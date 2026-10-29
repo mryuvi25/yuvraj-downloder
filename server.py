@@ -31,7 +31,8 @@ def download_media():
                 os.remove(output_base + ext)
             except:
                 pass
-ydl_opts = {
+
+    ydl_opts = {
         'outtmpl': output_base,
         'quiet': True,
         'no_warnings': True,
