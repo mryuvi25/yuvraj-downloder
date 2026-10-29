@@ -32,7 +32,7 @@ def download_media():
             except:
                 pass
 
-   ydl_opts = {
+ydl_opts = {
         'outtmpl': output_base,
         'quiet': True,
         'no_warnings': True,
@@ -46,7 +46,7 @@ def download_media():
             'Accept-Language': 'en-US,en;q=0.9',
         }
     }
-    if download_type == 'audio':
+      if download_type == 'audio':
         ydl_opts['format'] = 'bestaudio/best'
         ydl_opts['postprocessors'] = [{
             'key': 'FFmpegExtractAudio',
