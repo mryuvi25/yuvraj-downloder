@@ -6,7 +6,9 @@ import urllib.parse
 
 app = Flask(__name__)
 CORS(app)
-
+@app.route('/')
+def home():
+    return send_file('index.html')
 @app.route('/download', methods=['POST'])
 def download_media():
     data = request.get_json()
