@@ -31,20 +31,19 @@ def download_media():
                 os.remove(output_base + ext)
             except:
                 pass
-
-    # Updated options jo YouTube Shorts aur Instagram dono ko smoothly chalayengi
-    ydl_opts = {
+ydl_opts = {
         'outtmpl': output_base,
         'quiet': True,
         'no_warnings': True,
         'extractor_args': {
             'youtube': {
-                'player_client': ['android', 'web', 'mweb']
+                'player_client': ['mweb', 'android', 'web']
             }
         },
         'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
             'Accept-Language': 'en-US,en;q=0.9',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         }
     }
 
