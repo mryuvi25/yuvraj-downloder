@@ -80,6 +80,9 @@ def download_media():
         print(f"Error Details: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+import os
+
 if __name__ == '__main__':
-    print("🚀 Yuvraj Server Chalu Ho Gaya Hai! (http://127.0.0.1:5000)")
-    app.run(port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    print(f"🚀 Yuvraj Server Chalu Ho Gaya Hai on port {port}!")
+    app.run(host='0.0.0.0', port=port)
