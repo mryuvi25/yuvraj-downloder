@@ -78,7 +78,9 @@ def download_media():
                 return jsonify({'error': 'File generate nahi ho payi!'}), 500
             
     except Exception as e:
-        print(f"Error Details: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        print(f"❌ Error Details: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 import os
