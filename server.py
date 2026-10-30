@@ -50,7 +50,7 @@ def download_media():
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
-            'format': 'best',
+            'format': 'bv*+ba/b',
             'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
