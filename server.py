@@ -5,16 +5,6 @@ import os
 import urllib.parse
 import traceback
 
-# Render Environment Variable se cookies ko safely write karna
-cookies_data = os.environ.get("YOUTUBE_COOKIES")
-if cookies_data:
-    clean_cookies = cookies_data.replace('\r', '')
-    with open("cookies.txt", "w", encoding="utf-8") as f:
-        f.write(clean_cookies)
-    print(f"🍪 Cookies.txt successfully loaded! Size: {os.path.getsize('cookies.txt')} bytes")
-else:
-    print("⚠️ Warning: YOUTUBE_COOKIES environment variable nahi mila!")
-
 app = Flask(__name__)
 CORS(app)
 
@@ -50,12 +40,7 @@ def download_media():
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
-            'format': 'bv*+ba/b',
-            'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
-            'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                'Accept-Language': 'en-US,en;q=0.9',
-            }
+            'format': 'best',
         }
 
         if download_type == 'audio':
@@ -66,7 +51,7 @@ def download_media():
                 'preferredquality': '192',
             }]
 
-        print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
+        print(f"📥 Downloading Instagram URL: {clean_url} | Type: {download_type}")
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([clean_url])
@@ -81,7 +66,7 @@ def download_media():
                         break
 
             if os.path.exists(filename):
-                download_name = "yuvraj_audio.mp3" if download_type == 'audio' else "yuvraj_video.mp4"
+                download_name = "yuvraj_instagram.mp3" if download_type == 'audio' else "yuvraj_instagram.mp4"
                 return send_file(filename, as_attachment=True, download_name=download_name)
             else:
                 return jsonify({'error': 'File generate nahi ho payi!'}), 500
