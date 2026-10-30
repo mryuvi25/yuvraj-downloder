@@ -26,7 +26,7 @@ def download_media():
         parsed_url = urllib.parse.urlparse(raw_url)
         clean_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
 
-        output_base = 'downloaded_media'
+        output_base = 'download_media'
         
         # Purane files saaf karna
         for ext in ['.mp4', '.mp3', '.m4a', '.webm', '.opus', '.mkv']:
@@ -36,11 +36,11 @@ def download_media():
                 except:
                     pass
 
-       ydl_opts = {
+        ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
-            'cookiefile': 'cookies.txt',  # <-- Yeh line jodh deni hai
+            'cookiefile': 'cookies.txt',
             'extractor_args': {
                 'youtube': {
                     'player_client': ['android', 'web']
