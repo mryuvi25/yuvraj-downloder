@@ -20,7 +20,11 @@ CORS(app)
 
 @app.route('/')
 def home():
-    return send_file('index.html')
+    # Absolute path taaki Render par 404 error na aaye
+    html_path = os.path.join(os.path.dirname(__file__), 'index.html')
+    if os.path.exists(html_path):
+        return send_file(html_path)
+    return "❌ Error: index.html file nahi mili!", 404
 
 @app.route('/download', methods=['POST'])
 def download_media():
