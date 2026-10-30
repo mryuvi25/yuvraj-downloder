@@ -5,6 +5,12 @@ import os
 import urllib.parse
 import traceback
 
+# Render Environment Variable se automatically cookies file banana
+cookies_data = os.environ.get("YOUTUBE_COOKIES")
+if cookies_data:
+    with open("cookies.txt", "w", encoding="utf-8") as f:
+        f.write(cookies_data)
+
 app = Flask(__name__)
 CORS(app)
 
@@ -17,18 +23,16 @@ def download_media():
     try:
         data = request.get_json()
         raw_url = data.get('url')
-        download_type = data.get('type', 'video')  # 'video' ya 'audio'
+        download_type = data.get('type', 'video')
         
         if not raw_url:
             return jsonify({'error': 'URL missing hai'}), 400
 
-        # URL clean karna
         parsed_url = urllib.parse.urlparse(raw_url)
         clean_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
 
         output_base = 'downloaded_media'
         
-        # Purane files saaf karna
         for ext in ['.mp4', '.mp3', '.m4a', '.webm', '.opus', '.mkv']:
             if os.path.exists(output_base + ext):
                 try:
@@ -40,9 +44,10 @@ def download_media():
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
+            'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['tv', 'web']
+                    'player_client': ['android', 'web']
                 }
             },
             'http_headers': {
@@ -68,7 +73,6 @@ def download_media():
             target_ext = '.mp3' if download_type == 'audio' else '.mp4'
             filename = output_base + target_ext
             
-            # Agar direct extension nahi mila toh folder me file dhoondna
             if not os.path.exists(filename):
                 for file in os.listdir('.'):
                     if file.startswith('downloaded_media'):
