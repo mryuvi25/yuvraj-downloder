@@ -46,7 +46,6 @@ def download_media():
                 except:
                     pass
 
-        # Yahan ydl_opts ko pehle hi define kar diya hai
         ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
@@ -68,6 +67,7 @@ def download_media():
             }]
         else:
             ydl_opts['format'] = 'best'
+            ydl_opts['extractor_args'] = {'youtube': {'player_client': ['web', 'android']}}
 
         print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
 
