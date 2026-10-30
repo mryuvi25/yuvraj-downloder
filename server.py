@@ -58,8 +58,7 @@ def download_media():
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             }
         }
-
-        if download_type == 'audio':
+if download_type == 'audio':
             ydl_opts['format'] = 'bestaudio/best'
             ydl_opts['postprocessors'] = [{
                 'key': 'FFmpegExtractAudio',
@@ -67,8 +66,7 @@ def download_media():
                 'preferredquality': '192',
             }]
         else:
-            ydl_opts['format'] = 'bv*+ba/b / best'
-            ydl_opts['merge_output_format'] = 'mp4'
+            ydl_opts['format'] = 'best'
 
         print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
 
