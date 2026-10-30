@@ -5,11 +5,15 @@ import os
 import urllib.parse
 import traceback
 
-# Render Environment Variable se automatically cookies file banana
+# Render Environment Variable se cookies ko safely write karna (Line endings fix ke sath)
 cookies_data = os.environ.get("YOUTUBE_COOKIES")
 if cookies_data:
+    clean_cookies = cookies_data.replace('\r', '')
     with open("cookies.txt", "w", encoding="utf-8") as f:
-        f.write(cookies_data)
+        f.write(clean_cookies)
+    print(f"🍪 Cookies.txt successfully loaded! Size: {os.path.getsize('cookies.txt')} bytes")
+else:
+    print("⚠️ Warning: YOUTUBE_COOKIES environment variable nahi mila!")
 
 app = Flask(__name__)
 CORS(app)
@@ -23,16 +27,18 @@ def download_media():
     try:
         data = request.get_json()
         raw_url = data.get('url')
-        download_type = data.get('type', 'video')
+        download_type = data.get('type', 'video')  # 'video' ya 'audio'
         
         if not raw_url:
             return jsonify({'error': 'URL missing hai'}), 400
 
+        # URL clean karna
         parsed_url = urllib.parse.urlparse(raw_url)
         clean_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
 
         output_base = 'downloaded_media'
         
+        # Purane files saaf karna
         for ext in ['.mp4', '.mp3', '.m4a', '.webm', '.opus', '.mkv']:
             if os.path.exists(output_base + ext):
                 try:
@@ -45,14 +51,10 @@ def download_media():
             'quiet': True,
             'no_warnings': True,
             'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['android', 'web']
-                }
-            },
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                 'Accept-Language': 'en-US,en;q=0.9',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             }
         }
 
@@ -67,12 +69,15 @@ def download_media():
             ydl_opts['format'] = 'best/bestvideo+bestaudio'
             ydl_opts['merge_output_format'] = 'mp4'
 
+        print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([clean_url])
             
             target_ext = '.mp3' if download_type == 'audio' else '.mp4'
             filename = output_base + target_ext
             
+            # Agar direct extension nahi mila toh folder me file dhoondna
             if not os.path.exists(filename):
                 for file in os.listdir('.'):
                     if file.startswith('downloaded_media'):
