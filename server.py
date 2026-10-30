@@ -45,7 +45,8 @@ def download_media():
                     os.remove(output_base + ext)
                 except:
                     pass
-ydl_opts = {
+
+        ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
@@ -64,9 +65,6 @@ ydl_opts = {
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
             }]
-        else:
-            ydl_opts['format'] = 'best'
-            ydl_opts['extractor_args'] = {'youtube': {'player_client': ['web', 'android']}}
 
         print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
 
