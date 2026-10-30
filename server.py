@@ -66,7 +66,7 @@ def download_media():
                 'preferredquality': '192',
             }]
         else:
-            ydl_opts['format'] = 'best'
+    ydl_opts['format'] = 'best[ext=mp4]/best'
 
         print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
 
