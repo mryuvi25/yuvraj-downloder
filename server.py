@@ -45,8 +45,8 @@ def download_media():
                     os.remove(output_base + ext)
                 except:
                     pass
-
-        ydl_opts = {
+                   
+                    ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
@@ -66,7 +66,7 @@ def download_media():
                 'preferredquality': '192',
             }]
         else:
-            ydl_opts['format'] = 'best/bestvideo+bestaudio'
+            ydl_opts['format'] = 'bv*+ba/b / best'
             ydl_opts['merge_output_format'] = 'mp4'
 
         print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
