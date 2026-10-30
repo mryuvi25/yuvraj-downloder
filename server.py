@@ -5,7 +5,7 @@ import os
 import urllib.parse
 import traceback
 
-# Render Environment Variable se cookies ko safely write karna (Line endings fix ke sath)
+# Render Environment Variable se cookies ko safely write karna
 cookies_data = os.environ.get("YOUTUBE_COOKIES")
 if cookies_data:
     clean_cookies = cookies_data.replace('\r', '')
@@ -45,8 +45,9 @@ def download_media():
                     os.remove(output_base + ext)
                 except:
                     pass
-                   
-                    ydl_opts = {
+
+        # Yahan ydl_opts ko pehle hi define kar diya hai
+        ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
@@ -77,7 +78,6 @@ def download_media():
             target_ext = '.mp3' if download_type == 'audio' else '.mp4'
             filename = output_base + target_ext
             
-            # Agar direct extension nahi mila toh folder me file dhoondna
             if not os.path.exists(filename):
                 for file in os.listdir('.'):
                     if file.startswith('downloaded_media'):
