@@ -39,10 +39,8 @@
             </button>
         </div>
 
-        <!-- Sub-Tabs Section (Reels, Video, Audio, etc.) -->
-        <div id="subTabsContainer" class="flex flex-wrap justify-center gap-2 mb-8 w-full">
-            <!-- Yeh JavaScript se dynamically change honge platform ke hisab se -->
-        </div>
+        <!-- Sub-Tabs Section -->
+        <div id="subTabsContainer" class="flex flex-wrap justify-center gap-2 mb-8 w-full"></div>
 
         <!-- Downloader Box -->
         <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800 p-6 md:p-8 rounded-3xl shadow-2xl shadow-cyan-950/20 w-full relative overflow-hidden">
@@ -181,7 +179,7 @@
             btn.disabled = true;
 
             try {
-            const response = await fetch('/download', {
+                const response = await fetch('/download', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url: url, type: isAudio ? 'audio' : 'video' })
@@ -201,12 +199,11 @@
                     status.innerHTML = `<span class="text-rose-400 font-semibold"><i class="fa-solid fa-circle-xmark"></i> Error! Valid link check karein.</span>`;
                 }
             } catch (err) {
-                status.innerHTML = `<span class="text-rose-400 font-semibold"><i class="fa-solid fa-triangle-exclamation"></i> Server se connect nahi ho paya! Kya server.py chal raha hai?</span>`;
+                status.innerHTML = `<span class="text-rose-400 font-semibold"><i class="fa-solid fa-triangle-exclamation"></i> Server se connect nahi ho paya!</span>`;
             }
             btn.disabled = false;
         }
 
-        // Initialize default tabs
         renderSubTabs();
     </script>
 </body>
