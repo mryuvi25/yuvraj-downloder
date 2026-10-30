@@ -1,210 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yuvraj Downloader - Professional Media Extractor</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-white">
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
+import yt_dlp
+import os
+import urllib.parse
+import traceback
 
-    <!-- Header / Brand -->
-    <header class="w-full py-4 px-6 md:px-12 flex justify-between items-center border-b border-slate-800/60 backdrop-blur-md bg-slate-950/80 sticky top-0 z-50">
-        <div class="flex items-center gap-3">
-            <div class="bg-gradient-to-tr from-cyan-500 to-indigo-600 p-2.5 rounded-xl shadow-lg shadow-cyan-500/20">
-                <i class="fa-solid fa-download text-white text-lg"></i>
-            </div>
-            <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
-                Yuvraj Downloader
-            </span>
-        </div>
-        <div class="flex items-center gap-4 text-sm text-slate-400">
-            <span class="hidden md:flex items-center gap-1.5"><i class="fa-solid fa-bolt text-amber-400"></i> Fast & Secure</span>
-        </div>
-    </header>
+# Render Environment Variable se cookies ko safely write karna
+cookies_data = os.environ.get("YOUTUBE_COOKIES")
+if cookies_data:
+    clean_cookies = cookies_data.replace('\r', '')
+    with open("cookies.txt", "w", encoding="utf-8") as f:
+        f.write(clean_cookies)
+    print(f"🍪 Cookies.txt successfully loaded! Size: {os.path.getsize('cookies.txt')} bytes")
+else:
+    print("⚠️ Warning: YOUTUBE_COOKIES environment variable nahi mila!")
 
-    <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col items-center px-4 py-8 max-w-4xl mx-auto w-full">
+app = Flask(__name__)
+CORS(app)
 
-        <!-- Platform Tabs (Instagram / YouTube) -->
-        <div class="flex bg-slate-900 p-1.5 rounded-2xl border border-slate-800 mb-8 w-full max-w-md shadow-lg">
-            <button onclick="switchPlatform('instagram')" id="instaTabBtn" 
-                class="flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md cursor-pointer">
-                <i class="fa-brands fa-instagram text-lg"></i> Instagram
-            </button>
-            <button onclick="switchPlatform('youtube')" id="ytTabBtn" 
-                class="flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-white cursor-pointer">
-                <i class="fa-brands fa-youtube text-lg text-red-500"></i> YouTube
-            </button>
-        </div>
+@app.route('/')
+def home():
+    # Absolute path taaki Render par 404 error na aaye
+    html_path = os.path.join(os.path.dirname(__file__), 'index.html')
+    if os.path.exists(html_path):
+        return send_file(html_path)
+    return "❌ Error: index.html file nahi mili!", 404
 
-        <!-- Sub-Tabs Section -->
-        <div id="subTabsContainer" class="flex flex-wrap justify-center gap-2 mb-8 w-full"></div>
+@app.route('/download', methods=['POST'])
+def download_media():
+    try:
+        data = request.get_json()
+        raw_url = data.get('url')
+        download_type = data.get('type', 'video')  # 'video' ya 'audio'
+        
+        if not raw_url:
+            return jsonify({'error': 'URL missing hai'}), 400
 
-        <!-- Downloader Box -->
-        <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800 p-6 md:p-8 rounded-3xl shadow-2xl shadow-cyan-950/20 w-full relative overflow-hidden">
-            <div class="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl"></div>
+        # URL clean karna
+        parsed_url = urllib.parse.urlparse(raw_url)
+        clean_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
+
+        output_base = 'downloaded_media'
+        
+        # Purane files saaf karna
+        for ext in ['.mp4', '.mp3', '.m4a', '.webm', '.opus', '.mkv']:
+            if os.path.exists(output_base + ext):
+                try:
+                    os.remove(output_base + ext)
+                except:
+                    pass
+
+        ydl_opts = {
+            'outtmpl': output_base,
+            'quiet': True,
+            'no_warnings': True,
+            'format': 'bv*+ba/b',
+            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+            'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                'Accept-Language': 'en-US,en;q=0.9',
+            }
+        }
+
+        if download_type == 'audio':
+            ydl_opts['format'] = 'bestaudio/best'
+            ydl_opts['postprocessors'] = [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }]
+
+        print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([clean_url])
             
-            <div class="text-center mb-6">
-                <h2 id="sectionTitle" class="text-2xl md:text-3xl font-black tracking-tight mb-2 text-cyan-400">Instagram Reel Downloader</h2>
-                <p id="sectionDesc" class="text-slate-400 text-sm">Paste any Instagram Reel link to download in high definition.</p>
-            </div>
+            target_ext = '.mp3' if download_type == 'audio' else '.mp4'
+            filename = output_base + target_ext
+            
+            if not os.path.exists(filename):
+                for file in os.listdir('.'):
+                    if file.startswith('downloaded_media'):
+                        filename = file
+                        break
 
-            <div class="space-y-4 relative z-10">
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-500">
-                        <i class="fa-solid fa-link"></i>
-                    </span>
-                    <input type="text" id="urlInput" placeholder="https://www.instagram.com/reel/..." 
-                        class="w-full bg-slate-950 border border-slate-700 rounded-2xl pl-11 pr-24 py-4 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-cyan-500 shadow-inner">
-                    
-                    <div class="absolute inset-y-0 right-1.5 flex items-center gap-1 pr-2">
-                        <button onclick="pasteLink()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition cursor-pointer">Paste</button>
-                        <button onclick="clearInput()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 text-xs rounded-xl transition cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                </div>
+            if os.path.exists(filename):
+                download_name = "yuvraj_audio.mp3" if download_type == 'audio' else "yuvraj_video.mp4"
+                return send_file(filename, as_attachment=True, download_name=download_name)
+            else:
+                return jsonify({'error': 'File generate nahi ho payi!'}), 500
                 
-                <button onclick="downloadMedia()" id="downloadBtn" 
-                    class="w-full bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white font-bold py-4 rounded-2xl hover:opacity-95 transition-all shadow-lg shadow-cyan-500/25 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2.5 text-base">
-                    <i class="fa-solid fa-cloud-arrow-down text-lg"></i> Search & Download
-                </button>
+    except Exception as e:
+        print(f"❌ Error Details: {str(e)}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
-                <!-- Status Box -->
-                <div id="statusBox" class="hidden mt-4 p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center text-sm">
-                    <p id="status" class="text-slate-300 font-medium"></p>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="w-full py-6 text-center border-t border-slate-900 text-xs text-slate-500">
-        <p>© 2026 Yuvraj Downloader. All rights reserved.</p>
-    </footer>
-
-    <script>
-        let currentPlatform = 'instagram';
-        let currentType = 'reel';
-
-        const subTabsData = {
-            instagram: [
-                { id: 'reel', name: 'Reels', icon: 'fa-video', desc: 'Paste Instagram Reel link' },
-                { id: 'video', name: 'Video / Post', icon: 'fa-film', desc: 'Paste Instagram Video link' },
-                { id: 'audio', name: 'Audio / Music', icon: 'fa-music', desc: 'Download Reel MP3 audio' }
-            ],
-            youtube: [
-                { id: 'short', name: 'Shorts', icon: 'fa-bolt', desc: 'Paste YouTube Short link' },
-                { id: 'video', name: 'Video', icon: 'fa-tv', desc: 'Paste YouTube Video link' },
-                { id: 'audio', name: 'MP3 Audio', icon: 'fa-headphones', desc: 'Download YouTube audio in MP3' }
-            ]
-        };
-
-        function switchPlatform(platform) {
-            currentPlatform = platform;
-            const instaBtn = document.getElementById('instaTabBtn');
-            const ytBtn = document.getElementById('ytTabBtn');
-
-            if (platform === 'instagram') {
-                instaBtn.className = "flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md cursor-pointer";
-                ytBtn.className = "flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-white cursor-pointer";
-            } else {
-                ytBtn.className = "flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-md cursor-pointer";
-                instaBtn.className = "flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-white cursor-pointer";
-            }
-
-            renderSubTabs();
-        }
-
-        function renderSubTabs() {
-            const container = document.getElementById('subTabsContainer');
-            const tabs = subTabsData[currentPlatform];
-            container.innerHTML = '';
-
-            tabs.forEach((tab, index) => {
-                if (index === 0) {
-                    currentType = tab.id;
-                    updateHeaderInfo(tab);
-                }
-                const btn = document.createElement('button');
-                btn.className = `px-4 py-2.5 rounded-xl font-semibold text-xs md:text-sm transition-all flex items-center gap-2 cursor-pointer ${index === 0 ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/20' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'}`;
-                btn.innerHTML = `<i class="fa-solid ${tab.icon}"></i> ${tab.name}`;
-                btn.onclick = () => {
-                    document.querySelectorAll('#subTabsContainer button').forEach(b => {
-                        b.className = 'px-4 py-2.5 rounded-xl font-semibold text-xs md:text-sm transition-all flex items-center gap-2 cursor-pointer bg-slate-900 border border-slate-800 text-slate-400 hover:text-white';
-                    });
-                    btn.className = 'px-4 py-2.5 rounded-xl font-semibold text-xs md:text-sm transition-all flex items-center gap-2 cursor-pointer bg-cyan-500 text-white shadow-lg shadow-cyan-500/20';
-                    currentType = tab.id;
-                    updateHeaderInfo(tab);
-                };
-                container.appendChild(btn);
-            });
-        }
-
-        function updateHeaderInfo(tab) {
-            document.getElementById('sectionTitle').innerText = `${currentPlatform.toUpperCase()} ${tab.name} Downloader`;
-            document.getElementById('sectionDesc').innerText = tab.desc;
-            document.getElementById('urlInput').placeholder = `Paste ${currentPlatform} ${tab.name} link here...`;
-        }
-
-        async function pasteLink() {
-            try {
-                const text = await navigator.clipboard.readText();
-                document.getElementById('urlInput').value = text;
-            } catch (err) {
-                alert('Clipboard permission denied!');
-            }
-        }
-
-        function clearInput() {
-            document.getElementById('urlInput').value = '';
-        }
-
-        async function downloadMedia() {
-            const url = document.getElementById('urlInput').value.trim();
-            const statusBox = document.getElementById('statusBox');
-            const status = document.getElementById('status');
-            const btn = document.getElementById('downloadBtn');
-
-            if (!url) {
-                statusBox.classList.remove('hidden');
-                status.innerHTML = `<span class="text-rose-400"><i class="fa-solid fa-triangle-exclamation"></i> Pehle link paste karein!</span>`;
-                return;
-            }
-
-            statusBox.classList.remove('hidden');
-            let isAudio = currentType.includes('audio');
-            status.innerHTML = `<span class="text-cyan-400 flex items-center justify-center gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Processing ${isAudio ? 'MP3 Audio' : 'HD Video'} from server...</span>`;
-            btn.disabled = true;
-
-            try {
-                const response = await fetch('/download', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url, type: isAudio ? 'audio' : 'video' })
-                });
-
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const downloadUrl = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = isAudio ? 'yuvraj_audio.mp3' : 'yuvraj_video.mp4';
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    status.innerHTML = `<span class="text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check"></i> Success! File download ho gayi!</span>`;
-                } else {
-                    status.innerHTML = `<span class="text-rose-400 font-semibold"><i class="fa-solid fa-circle-xmark"></i> Error! Valid link check karein.</span>`;
-                }
-            } catch (err) {
-                status.innerHTML = `<span class="text-rose-400 font-semibold"><i class="fa-solid fa-triangle-exclamation"></i> Server se connect nahi ho paya!</span>`;
-            }
-            btn.disabled = false;
-        }
-
-        renderSubTabs();
-    </script>
-</body>
-</html>
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    print(f"🚀 Yuvraj Server Chalu Ho Gaya Hai on port {port}!")
+    app.run(host='0.0.0.0', port=port)
