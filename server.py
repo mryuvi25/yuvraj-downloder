@@ -36,14 +36,13 @@ def download_media():
                 except:
                     pass
 
-        ydl_opts = {
+       ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
-            'cookiefile': 'cookies.txt',
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'web']
+                    'player_client': ['tv', 'web']
                 }
             },
             'http_headers': {
