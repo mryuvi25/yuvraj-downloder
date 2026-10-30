@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yuvraj Instagram Downloader</title>
+    <title>Yuvraj Media Downloader</title>
     <style>
         body {
             background-color: #0f172a;
@@ -21,12 +21,32 @@
             border-radius: 15px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             width: 100%;
-            max-width: 450px;
+            max-width: 480px;
             text-align: center;
         }
         h2 {
             color: #38bdf8;
             margin-bottom: 20px;
+        }
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .tab-btn.active {
+            background: #38bdf8;
+            color: #0f172a;
         }
         input {
             width: 85%;
@@ -39,8 +59,8 @@
             margin-bottom: 15px;
             outline: none;
         }
-        button {
-            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+        button.download-btn {
+            background: linear-gradient(135deg, #38bdf8, #8b5cf6);
             color: white;
             border: none;
             padding: 12px 20px;
@@ -51,7 +71,7 @@
             width: 100%;
             transition: 0.3s;
         }
-        button:hover {
+        button.download-btn:hover {
             opacity: 0.9;
         }
         #status {
@@ -63,14 +83,36 @@
 <body>
 
     <div class="container">
-        <h2>📷 Instagram Downloader</h2>
-        <input type="text" id="urlInput" placeholder="Instagram Reel ka link yahan paste karein...">
+        <h2>📥 Yuvraj Downloader</h2>
+        
+        <div class="tabs">
+            <button class="tab-btn active" id="ytTab" onclick="switchPlatform('youtube')">YouTube</button>
+            <button class="tab-btn" id="igTab" onclick="switchPlatform('instagram')">Instagram</button>
+        </div>
+
+        <input type="text" id="urlInput" placeholder="YouTube ya Instagram ka link yahan paste karein...">
         <br>
-        <button onclick="downloadMedia()">Download Video</button>
+        <button class="download-btn" onclick="downloadMedia()">Search & Download</button>
         <p id="status"></p>
     </div>
 
     <script>
+        let currentPlatform = 'youtube';
+
+        function switchPlatform(platform) {
+            currentPlatform = platform;
+            document.getElementById('ytTab').classList.remove('active');
+            document.getElementById('igTab').classList.remove('active');
+            
+            if (platform === 'youtube') {
+                document.getElementById('ytTab').classList.add('active');
+                document.getElementById('urlInput').placeholder = 'YouTube link yahan paste karein...';
+            } else {
+                document.getElementById('igTab').classList.add('active');
+                document.getElementById('urlInput').placeholder = 'Instagram link yahan paste karein...';
+            }
+        }
+
         async function downloadMedia() {
             const url = document.getElementById('urlInput').value.trim();
             const status = document.getElementById('status');
@@ -85,18 +127,13 @@
             status.innerText = '⏳ Downloading ho raha hai, thoda wait karo...';
 
             try {
-                const response = await fetch('/download', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url, type: 'video' })
-                });
-
+                const response = await downloadFromServer(url, 'video');
                 if (response.ok) {
                     const blob = await response.blob();
                     const downloadUrl = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = downloadUrl;
-                    a.download = 'yuvraj_instagram.mp4';
+                    a.download = currentPlatform === 'youtube' ? 'yuvraj_video.mp4' : 'yuvraj_instagram.mp4';
                     document.body.appendChild(a);
                     a.click();
                     a.remove();
@@ -111,6 +148,14 @@
                 status.style.color = '#f87171';
                 status.innerText = '❌ Server error aa gaya!';
             }
+        }
+
+        async function downloadFromServer(url, type) {
+            return await fetch('/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url, type: type })
+            });
         }
     </script>
 </body>
