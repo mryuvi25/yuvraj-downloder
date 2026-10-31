@@ -50,12 +50,16 @@ def download_media():
                 except:
                     pass
 
+        # Universal options jo Render par bhi chale aur YouTube shorts ko bhi na roke
         ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
-            'format': 'bv*+ba/b',
-            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web']
+                }
+            },
             'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -70,6 +74,9 @@ def download_media():
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
             }]
+        else:
+            ydl_opts['format'] = 'best/bestvideo+bestaudio'
+            ydl_opts['merge_output_format'] = 'mp4'
 
         print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
 
@@ -79,6 +86,7 @@ def download_media():
             target_ext = '.mp3' if download_type == 'audio' else '.mp4'
             filename = output_base + target_ext
             
+            # Agar direct extension nahi mila toh folder me file dhoondna
             if not os.path.exists(filename):
                 for file in os.listdir('.'):
                     if file.startswith('downloaded_media'):
