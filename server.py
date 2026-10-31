@@ -39,9 +39,13 @@ def download_media():
         if not raw_url:
             return jsonify({'error': 'URL missing hai'}), 400
 
-        # URL clean karna
+        # URL clean aur fix karna for Shorts/Videos
         parsed_url = urllib.parse.urlparse(raw_url)
         clean_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
+        
+        # Agar short link hai toh usko standard watch URL mein convert karna ya safe rakhna
+        if "/shorts/" in clean_url:
+            clean_url = raw_url.split('&')[0]  # Query params saaf karne ke liye
 
         output_base = 'downloaded_media'
         
