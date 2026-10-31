@@ -5,20 +5,6 @@ import os
 import urllib.parse
 import traceback
 
-# Absolute path for cookies file
-cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
-cookies_data = os.environ.get("YOUTUBE_COOKIES")
-
-if cookies_data:
-    clean_cookies = cookies_data.replace('\r', '')
-    with open(cookies_path, "w", encoding="utf-8") as f:
-        f.write(clean_cookies)
-    
-    file_size = os.path.getsize(cookies_path)
-    print(f"🍪 Cookies file generated successfully! Size: {file_size} bytes")
-else:
-    print("⚠️ Warning: YOUTUBE_COOKIES environment variable nahi mila!")
-
 app = Flask(__name__)
 CORS(app)
 
@@ -53,17 +39,11 @@ def download_media():
                 except:
                     pass
 
-        # Advanced options with cookies & safe 'best' format to avoid merging errors
+        # Advanced options for Instagram media extraction
         ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['android', 'ios', 'mweb', 'web']
-                }
-            },
-            'cookiefile': cookies_path if os.path.exists(cookies_path) else None,
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                 'Accept-Language': 'en-US,en;q=0.9',
@@ -78,10 +58,9 @@ def download_media():
                 'preferredquality': '192',
             }]
         else:
-            # 'best' use karne se format not available ka error hamesha ke liye khatam ho jayega
             ydl_opts['format'] = 'best'
 
-        print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
+        print(f"📥 Downloading Instagram URL: {clean_url} | Type: {download_type}")
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([clean_url])
