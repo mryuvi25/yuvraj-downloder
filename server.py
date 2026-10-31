@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import yt_dlp
 import os
+import urllib.parse
 import traceback
 
 app = Flask(__name__)
@@ -24,8 +25,9 @@ def download_media():
         if not raw_url:
             return jsonify({'error': 'URL missing hai'}), 400
 
-        # Story aur Post/Reel ke liye exact URL pass karna taaki ID misplace na ho
-        clean_url = raw_url.strip()
+        # URL clean karna: Query parameters (jaise ?xtok=..., ?igsh=...) ko hatana taaki link valid rahe
+        parsed_url = urllib.parse.urlparse(raw_url.strip())
+        clean_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
 
         output_base = 'downloaded_media'
         
@@ -52,10 +54,6 @@ def download_media():
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Sec-Fetch-Dest': 'document',
-                'Sec-Fetch-Mode': 'navigate',
-                'Sec-Fetch-Site': 'none',
-                'Sec-Fetch-User': '?1',
             }
         }
 
@@ -69,12 +67,12 @@ def download_media():
         else:
             ydl_opts['format'] = 'best/bestvideo+bestaudio'
 
-        print(f"📥 Downloading Instagram URL: {clean_url} | Type: {download_type}")
+        print(f"📥 Downloading Clean Instagram URL: {clean_url} | Type: {download_type}")
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([clean_url])
             
-            # Check karne ke liye kaunsi file bani hai (mp4, mp3, ya image formats)
+            # Check karne ke liye kaunsi file bani hai
             target_ext = '.mp3' if download_type == 'audio' else '.mp4'
             filename = output_base + target_ext
             
