@@ -27,16 +27,11 @@
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col items-center px-4 py-8 max-w-4xl mx-auto w-full">
 
-        <!-- Platform Tabs (Instagram / YouTube) -->
-        <div class="flex bg-slate-900 p-1.5 rounded-2xl border border-slate-800 mb-8 w-full max-w-md shadow-lg">
-            <button onclick="switchPlatform('instagram')" id="instaTabBtn" 
-                class="flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md cursor-pointer">
-                <i class="fa-brands fa-instagram text-lg"></i> Instagram
-            </button>
-            <button onclick="switchPlatform('youtube')" id="ytTabBtn" 
-                class="flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-white cursor-pointer">
-                <i class="fa-brands fa-youtube text-lg text-red-500"></i> YouTube
-            </button>
+        <!-- Platform Title / Indicator -->
+        <div class="flex bg-slate-900 px-6 py-3 rounded-2xl border border-slate-800 mb-8 w-full max-w-md shadow-lg justify-center items-center gap-2">
+            <span class="flex items-center justify-center gap-2 font-bold text-base bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+                <i class="fa-brands fa-instagram text-xl text-pink-500"></i> Instagram Media Downloader
+            </span>
         </div>
 
         <!-- Sub-Tabs Section -->
@@ -85,44 +80,19 @@
     </footer>
 
     <script>
-        let currentPlatform = 'instagram';
         let currentType = 'reel';
 
-        const subTabsData = {
-            instagram: [
-                { id: 'reel', name: 'Reels', icon: 'fa-video', desc: 'Paste Instagram Reel link' },
-                { id: 'video', name: 'Video / Post', icon: 'fa-film', desc: 'Paste Instagram Video link' },
-                { id: 'audio', name: 'Audio / Music', icon: 'fa-music', desc: 'Download Reel MP3 audio' }
-            ],
-            youtube: [
-                { id: 'short', name: 'Shorts', icon: 'fa-bolt', desc: 'Paste YouTube Short link' },
-                { id: 'video', name: 'Video', icon: 'fa-tv', desc: 'Paste YouTube Video link' },
-                { id: 'audio', name: 'MP3 Audio', icon: 'fa-headphones', desc: 'Download YouTube audio in MP3' }
-            ]
-        };
-
-        function switchPlatform(platform) {
-            currentPlatform = platform;
-            const instaBtn = document.getElementById('instaTabBtn');
-            const ytBtn = document.getElementById('ytTabBtn');
-
-            if (platform === 'instagram') {
-                instaBtn.className = "flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md cursor-pointer";
-                ytBtn.className = "flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-white cursor-pointer";
-            } else {
-                ytBtn.className = "flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-md cursor-pointer";
-                instaBtn.className = "flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-white cursor-pointer";
-            }
-
-            renderSubTabs();
-        }
+        const subTabsData = [
+            { id: 'reel', name: 'Reels', icon: 'fa-video', desc: 'Paste Instagram Reel link' },
+            { id: 'video', name: 'Video / Post', icon: 'fa-film', desc: 'Paste Instagram Video link' },
+            { id: 'audio', name: 'Audio / Music', icon: 'fa-music', desc: 'Download Reel MP3 audio' }
+        ];
 
         function renderSubTabs() {
             const container = document.getElementById('subTabsContainer');
-            const tabs = subTabsData[currentPlatform];
             container.innerHTML = '';
 
-            tabs.forEach((tab, index) => {
+            subTabsData.forEach((tab, index) => {
                 if (index === 0) {
                     currentType = tab.id;
                     updateHeaderInfo(tab);
@@ -143,9 +113,9 @@
         }
 
         function updateHeaderInfo(tab) {
-            document.getElementById('sectionTitle').innerText = `${currentPlatform.toUpperCase()} ${tab.name} Downloader`;
+            document.getElementById('sectionTitle').innerText = `Instagram ${tab.name} Downloader`;
             document.getElementById('sectionDesc').innerText = tab.desc;
-            document.getElementById('urlInput').placeholder = `Paste ${currentPlatform} ${tab.name} link here...`;
+            document.getElementById('urlInput').placeholder = `Paste Instagram ${tab.name} link here...`;
         }
 
         async function pasteLink() {
