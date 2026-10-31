@@ -39,13 +39,9 @@ def download_media():
         if not raw_url:
             return jsonify({'error': 'URL missing hai'}), 400
 
-        # URL clean aur fix karna for Shorts/Videos
+        # URL clean karna aur query parameters hatana
         parsed_url = urllib.parse.urlparse(raw_url)
         clean_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
-        
-        # Agar short link hai toh usko standard watch URL mein convert karna ya safe rakhna
-        if "/shorts/" in clean_url:
-            clean_url = raw_url.split('&')[0]  # Query params saaf karne ke liye
 
         output_base = 'downloaded_media'
         
@@ -57,7 +53,7 @@ def download_media():
                 except:
                     pass
 
-        # Advanced options with cookies & robust format handling
+        # Advanced options with cookies & safe 'best' format to avoid merging errors
         ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
@@ -82,8 +78,8 @@ def download_media():
                 'preferredquality': '192',
             }]
         else:
-            ydl_opts['format'] = 'bv*+ba/b / best'
-            ydl_opts['merge_output_format'] = 'mp4'
+            # 'best' use karne se format not available ka error hamesha ke liye khatam ho jayega
+            ydl_opts['format'] = 'best'
 
         print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
 
