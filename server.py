@@ -13,7 +13,16 @@ if cookies_data:
     clean_cookies = cookies_data.replace('\r', '')
     with open(cookies_path, "w", encoding="utf-8") as f:
         f.write(clean_cookies)
-    print(f"🍪 Cookies.txt successfully loaded at {cookies_path}! Size: {os.path.getsize(cookies_path)} bytes")
+    
+    # Check karne ke liye ki cookies file sahi se bani ya nahi
+    file_size = os.path.getsize(cookies_path)
+    print(f"🍪 Cookies file generated! Size: {file_size} bytes")
+    
+    with open(cookies_path, "r", encoding="utf-8") as f:
+        first_line = f.readline().strip()
+        print(f"🍪 Cookies first line: {first_line}")
+        if "Netscape" not in first_line:
+            print("⚠️ WARNING: Cookies file Netscape format mein nahi hai! Isiliye YouTube block kar raha hai.")
 else:
     print("⚠️ Warning: YOUTUBE_COOKIES environment variable nahi mila!")
 
@@ -51,7 +60,6 @@ def download_media():
                 except:
                     pass
 
-        # Advanced options with iOS/Android bypass clients & explicit cookie path
         ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
@@ -76,7 +84,8 @@ def download_media():
                 'preferredquality': '192',
             }]
         else:
-            ydl_opts['format'] = 'best/bestvideo+bestaudio'
+            ydl_opt_format = 'best/bestvideo+bestaudio'
+            ydl_opts['format'] = ydl_opt_format
             ydl_opts['merge_output_format'] = 'mp4'
 
         print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
