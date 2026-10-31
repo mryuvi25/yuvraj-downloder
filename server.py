@@ -75,8 +75,7 @@ def download_media():
                 'Accept-Language': 'en-US,en;q=0.9',
             }
         }
-
-        if download_type == 'audio':
+if download_type == 'audio':
             ydl_opts['format'] = 'bestaudio/best'
             ydl_opts['postprocessors'] = [{
                 'key': 'FFmpegExtractAudio',
@@ -84,8 +83,7 @@ def download_media():
                 'preferredquality': '192',
             }]
         else:
-            ydl_opt_format = 'best/bestvideo+bestaudio'
-            ydl_opts['format'] = ydl_opt_format
+            ydl_opts['format'] = 'bv*+ba/b / best'  # Yeh sabse safe aur robust format string hai
             ydl_opts['merge_output_format'] = 'mp4'
 
         print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
