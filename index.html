@@ -85,6 +85,7 @@
         const subTabsData = [
             { id: 'reel', name: 'Reels', icon: 'fa-video', desc: 'Paste Instagram Reel link' },
             { id: 'video', name: 'Video / Post', icon: 'fa-film', desc: 'Paste Instagram Video link' },
+            { id: 'story', name: 'Story', icon: 'fa-clock-rotate-left', desc: 'Paste Instagram Story link' },
             { id: 'audio', name: 'Audio / Music', icon: 'fa-music', desc: 'Download Reel MP3 audio' }
         ];
 
@@ -145,7 +146,9 @@
 
             statusBox.classList.remove('hidden');
             let isAudio = currentType.includes('audio');
-            status.innerHTML = `<span class="text-cyan-400 flex items-center justify-center gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Processing ${isAudio ? 'MP3 Audio' : 'HD Video'} from server...</span>`;
+            let isStory = currentType.includes('story');
+            
+            status.innerHTML = `<span class="text-cyan-400 flex items-center justify-center gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Processing ${isAudio ? 'MP3 Audio' : (isStory ? 'Instagram Story' : 'HD Video')} from server...</span>`;
             btn.disabled = true;
 
             try {
@@ -160,7 +163,7 @@
                     const downloadUrl = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = downloadUrl;
-                    a.download = isAudio ? 'yuvraj_audio.mp3' : 'yuvraj_video.mp4';
+                    a.download = isAudio ? 'yuvraj_audio.mp3' : (isStory ? 'yuvraj_story.mp4' : 'yuvraj_video.mp4');
                     document.body.appendChild(a);
                     a.click();
                     a.remove();
