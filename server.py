@@ -14,15 +14,8 @@ if cookies_data:
     with open(cookies_path, "w", encoding="utf-8") as f:
         f.write(clean_cookies)
     
-    # Check karne ke liye ki cookies file sahi se bani ya nahi
     file_size = os.path.getsize(cookies_path)
-    print(f"🍪 Cookies file generated! Size: {file_size} bytes")
-    
-    with open(cookies_path, "r", encoding="utf-8") as f:
-        first_line = f.readline().strip()
-        print(f"🍪 Cookies first line: {first_line}")
-        if "Netscape" not in first_line:
-            print("⚠️ WARNING: Cookies file Netscape format mein nahi hai! Isiliye YouTube block kar raha hai.")
+    print(f"🍪 Cookies file generated successfully! Size: {file_size} bytes")
 else:
     print("⚠️ Warning: YOUTUBE_COOKIES environment variable nahi mila!")
 
@@ -60,13 +53,14 @@ def download_media():
                 except:
                     pass
 
+        # Advanced options with cookies & robust format handling
         ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'ios', 'web']
+                    'player_client': ['android', 'ios', 'mweb', 'web']
                 }
             },
             'cookiefile': cookies_path if os.path.exists(cookies_path) else None,
@@ -75,7 +69,8 @@ def download_media():
                 'Accept-Language': 'en-US,en;q=0.9',
             }
         }
-if download_type == 'audio':
+
+        if download_type == 'audio':
             ydl_opts['format'] = 'bestaudio/best'
             ydl_opts['postprocessors'] = [{
                 'key': 'FFmpegExtractAudio',
@@ -83,7 +78,7 @@ if download_type == 'audio':
                 'preferredquality': '192',
             }]
         else:
-            ydl_opts['format'] = 'bv*+ba/b / best'  # Yeh sabse safe aur robust format string hai
+            ydl_opts['format'] = 'bv*+ba/b / best'
             ydl_opts['merge_output_format'] = 'mp4'
 
         print(f"📥 Downloading URL: {clean_url} | Type: {download_type}")
