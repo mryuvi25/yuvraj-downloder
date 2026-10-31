@@ -25,28 +25,34 @@ def download_media():
         if not raw_url:
             return jsonify({'error': 'URL missing hai'}), 400
 
-        # URL clean karna (Stories ya posts ke liye zaroori query paths preserve karna)
-        parsed_url = urllib.parse.urlparse(raw_url)
-        clean_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
+        # Agar link Story ka hai toh URL clean mat karo, poora URL use karo taaki ID misplace na ho
+        if 'stories' in raw_url:
+            clean_url = raw_url.strip()
+        else:
+            # Reels aur Posts ke liye normal URL cleaning
+            parsed_url = urllib.parse.urlparse(raw_url)
+            clean_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
 
         output_base = 'downloaded_media'
         
         # Purane files saaf karna
-        for ext in ['.mp4', '.mp3', '.m4a', '.webm', '.opus', '.mkv', '.jpg', '.png']:
+        for ext in ['.mp4', '.mp3', '.m4a', '.webm', '.opus', '.mkv', '.jpg', '.png', '.webp']:
             if os.path.exists(output_base + ext):
                 try:
                     os.remove(output_base + ext)
                 except:
                     pass
 
-        # Advanced options for Instagram Media & Stories extraction
+        # Advanced options for public Instagram Media & Stories
         ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
+            'geo_bypass': True,
             'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
                 'Accept-Language': 'en-US,en;q=0.9',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             }
         }
 
@@ -58,13 +64,14 @@ def download_media():
                 'preferredquality': '192',
             }]
         else:
-            ydl_opts['format'] = 'best'
+            ydl_opts['format'] = 'best/bestvideo+bestaudio'
 
         print(f"📥 Downloading Instagram URL: {clean_url} | Type: {download_type}")
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([clean_url])
             
+            # Check karne ke liye kaunsi file bani hai (mp4, mp3, ya image formats for posts/stories)
             target_ext = '.mp3' if download_type == 'audio' else '.mp4'
             filename = output_base + target_ext
             
@@ -79,7 +86,7 @@ def download_media():
                 download_name = "yuvraj_audio.mp3" if download_type == 'audio' else f"yuvraj_media{file_ext}"
                 return send_file(filename, as_attachment=True, download_name=download_name)
             else:
-                return jsonify({'error': 'File generate nahi ho payi!'}), 500
+                return jsonify({'error': 'File generate nahi ho payi! Account public hona chahiye.'}), 500
                 
     except Exception as e:
         print(f"❌ Error Details: {str(e)}")
