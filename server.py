@@ -25,21 +25,21 @@ def download_media():
         if not raw_url:
             return jsonify({'error': 'URL missing hai'}), 400
 
-        # URL clean karna aur query parameters hatana
+        # URL clean karna (Stories ya posts ke liye zaroori query paths preserve karna)
         parsed_url = urllib.parse.urlparse(raw_url)
         clean_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
 
         output_base = 'downloaded_media'
         
         # Purane files saaf karna
-        for ext in ['.mp4', '.mp3', '.m4a', '.webm', '.opus', '.mkv']:
+        for ext in ['.mp4', '.mp3', '.m4a', '.webm', '.opus', '.mkv', '.jpg', '.png']:
             if os.path.exists(output_base + ext):
                 try:
                     os.remove(output_base + ext)
                 except:
                     pass
 
-        # Advanced options for Instagram media extraction
+        # Advanced options for Instagram Media & Stories extraction
         ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
@@ -75,7 +75,8 @@ def download_media():
                         break
 
             if os.path.exists(filename):
-                download_name = "yuvraj_audio.mp3" if download_type == 'audio' else "yuvraj_video.mp4"
+                file_ext = os.path.splitext(filename)[1]
+                download_name = "yuvraj_audio.mp3" if download_type == 'audio' else f"yuvraj_media{file_ext}"
                 return send_file(filename, as_attachment=True, download_name=download_name)
             else:
                 return jsonify({'error': 'File generate nahi ho payi!'}), 500
