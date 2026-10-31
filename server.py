@@ -1,3 +1,19 @@
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
+import yt_dlp
+import os
+import traceback
+
+app = Flask(__name__)
+CORS(app)
+
+@app.route('/')
+def home():
+    html_path = os.path.join(os.path.dirname(__file__), 'index.html')
+    if os.path.exists(html_path):
+        return send_file(html_path)
+    return "❌ Error: index.html file nahi mili!", 404
+
 @app.route('/download', methods=['POST'])
 def download_media():
     try:
@@ -8,7 +24,7 @@ def download_media():
         if not raw_url:
             return jsonify({'error': 'URL missing hai'}), 400
 
-        # Story aur Post dono ke liye URL clean nahi karna chahiye taaki ID aur path safe rahe
+        # Story aur Post/Reel ke liye exact URL pass karna taaki ID misplace na ho
         clean_url = raw_url.strip()
 
         output_base = 'downloaded_media'
@@ -58,7 +74,7 @@ def download_media():
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([clean_url])
             
-            # Check karne ke liye kaunsi file bani hai (mp4, mp3, ya images)
+            # Check karne ke liye kaunsi file bani hai (mp4, mp3, ya image formats)
             target_ext = '.mp3' if download_type == 'audio' else '.mp4'
             filename = output_base + target_ext
             
@@ -79,3 +95,8 @@ def download_media():
         print(f"❌ Error Details: {str(e)}")
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    print(f"🚀 Yuvraj Server Chalu Ho Gaya Hai on port {port}!")
+    app.run(host='0.0.0.0', port=port)
