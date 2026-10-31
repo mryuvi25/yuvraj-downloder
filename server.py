@@ -25,7 +25,7 @@ def download_media():
         if not raw_url:
             return jsonify({'error': 'URL missing hai'}), 400
 
-        # URL clean karna: Query parameters (jaise ?xtok=..., ?igsh=...) ko hatana taaki link valid rahe
+        # URL clean karna (query parameters hatana)
         parsed_url = urllib.parse.urlparse(raw_url.strip())
         clean_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
 
@@ -39,17 +39,15 @@ def download_media():
                 except:
                     pass
 
-        # Advanced options for Instagram Media, Posts & Stories
+        # Advanced options for Instagram Media, Posts & Stories (Flexible format for images/videos)
         ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
             'geo_bypass': True,
-            'extractor_args': {
-                'instagram': {
-                    'max_comments': 0
-                }
-            },
+            # 'format' ko optional rakha hai taaki image posts par video format ka error na aaye
+            'format': 'best/bestvideo+bestaudio/best',
+            'extract_flat': False,
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                 'Accept-Language': 'en-US,en;q=0.9',
@@ -64,25 +62,26 @@ def download_media():
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
             }]
-        else:
-            ydl_opts['format'] = 'best/bestvideo+bestaudio'
 
-        print(f"📥 Downloading Clean Instagram URL: {clean_url} | Type: {download_type}")
+        print(f"📥 Downloading Instagram URL: {clean_url} | Type: {download_type}")
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([clean_url])
             
-            # Check karne ke liye kaunsi file bani hai
-            target_ext = '.mp3' if download_type == 'audio' else '.mp4'
-            filename = output_base + target_ext
+            # Check karne ke liye kaunsi file bani hai (mp4, mp3, ya image extensions like jpg/webp)
+            filename = None
+            for ext in ['.mp4', '.mp3', '.jpg', '.png', '.webp', '.m4a', '.webm']:
+                if os.path.exists(output_base + ext):
+                    filename = output_base + ext
+                    break
             
-            if not os.path.exists(filename):
+            if not filename:
                 for file in os.listdir('.'):
-                    if file.startswith('downloaded_media'):
+                    if file.startswith('downloaded_media.'):
                         filename = file
                         break
 
-            if os.path.exists(filename):
+            if filename and os.path.exists(filename):
                 file_ext = os.path.splitext(filename)[1]
                 download_name = "yuvraj_audio.mp3" if download_type == 'audio' else f"yuvraj_media{file_ext}"
                 return send_file(filename, as_attachment=True, download_name=download_name)
