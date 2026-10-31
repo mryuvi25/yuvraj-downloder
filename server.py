@@ -39,15 +39,14 @@ def download_media():
                 except:
                     pass
 
-        # Advanced options for Instagram Media, Posts & Stories (Flexible format for images/videos)
+        # Robust yt_dlp options with image/video fallback extractor configuration
         ydl_opts = {
             'outtmpl': output_base,
             'quiet': True,
             'no_warnings': True,
             'geo_bypass': True,
-            # 'format' ko optional rakha hai taaki image posts par video format ka error na aaye
-            'format': 'best/bestvideo+bestaudio/best',
             'extract_flat': False,
+            'socket_timeout': 30,
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                 'Accept-Language': 'en-US,en;q=0.9',
@@ -62,31 +61,40 @@ def download_media():
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
             }]
+        else:
+            # Agar video format na mile toh generic best format uthane ke liye flexible rule
+            ydl_opts['format'] = 'best/bestvideo+bestaudio/best'
 
         print(f"📥 Downloading Instagram URL: {clean_url} | Type: {download_type}")
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([clean_url])
-            
-            # Check karne ke liye kaunsi file bani hai (mp4, mp3, ya image extensions like jpg/webp)
-            filename = None
-            for ext in ['.mp4', '.mp3', '.jpg', '.png', '.webp', '.m4a', '.webm']:
-                if os.path.exists(output_base + ext):
-                    filename = output_base + ext
-                    break
-            
-            if not filename:
-                for file in os.listdir('.'):
-                    if file.startswith('downloaded_media.'):
-                        filename = file
-                        break
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([clean_url])
+        except Exception as yt_err:
+            print(f"⚠️ Standard yt_dlp warning/error: {str(yt_err)}")
+            # Fallback: Agar direct download fail ho toh info extract karke try karenge
+            with yt_dlp.YoutubeDL({'quiet': True, 'no_warnings': True}) as ydl:
+                info = ydl.extract_info(clean_url, download=True)
 
-            if filename and os.path.exists(filename):
-                file_ext = os.path.splitext(filename)[1]
-                download_name = "yuvraj_audio.mp3" if download_type == 'audio' else f"yuvraj_media{file_ext}"
-                return send_file(filename, as_attachment=True, download_name=download_name)
-            else:
-                return jsonify({'error': 'File generate nahi ho payi! Post public honi chahiye.'}), 500
+        # Check karna ki kaunsi file generate hui hai (mp4, mp3, jpg, png, webp)
+        filename = None
+        for ext in ['.mp4', '.mp3', '.jpg', '.png', '.webp', '.m4a', '.webm', '.mkv']:
+            if os.path.exists(output_base + ext):
+                filename = output_base + ext
+                break
+        
+        if not filename:
+            for file in os.listdir('.'):
+                if file.startswith('downloaded_media'):
+                    filename = file
+                    break
+
+        if filename and os.path.exists(filename):
+            file_ext = os.path.splitext(filename)[1]
+            download_name = "yuvraj_audio.mp3" if download_type == 'audio' else f"yuvraj_media{file_ext}"
+            return send_file(filename, as_attachment=True, download_name=download_name)
+        else:
+            return jsonify({'error': 'File generate nahi ho payi! Post public honi chahiye ya link valid nahi hai.'}), 500
                 
     except Exception as e:
         print(f"❌ Error Details: {str(e)}")
